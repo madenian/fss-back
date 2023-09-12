@@ -68,6 +68,12 @@ const fetch = require('node-fetch');
 //       }
 //     });
 
+router.get('/', function(req, res) {
+    Streamer.find().then((streamer) => {
+        res.json(streamer);
+        console.log(streamer);
+    });
+});
 
 
 module.exports = router;
