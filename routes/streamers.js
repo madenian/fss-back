@@ -1,9 +1,9 @@
 var express = require("express");
 var router = express.Router();
 const Streamer = require("../models/streamers");
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
-// enregistrer les 100 streamers en BDD dé-commenter si besoin. 
+// enregistrer les 100 streamers en BDD dé-commenter si besoin.
 
 // router.post("/", function (req, res) {
 
@@ -17,22 +17,22 @@ const fetch = require('node-fetch');
 //         "MOMAN", "NIKOF", "ZACKNANI", "FANTABOBSHOW", "MAHDIBA", "VALOUZZ", "MAXIMEBIAGGI", "COLAS_BIM", "TONTON", "AYPIERRE",
 //         "ROCKY_", "XARI", "LUTTI", "KENNYSTREAM", "DRFEELGOOD", "JULIETTEARZ", "HUGODECRYPTE", "FAIRYPEAK", "RMCSPORT"
 //       ];
-    
+
 //     async function fetchTwitchData(streamerName) {
 //         const apiKey = 'yezyu92gzd8s4bpqxyrl1r893te09j';
-//         const accessToken = 'c4rczh7a6nniomgrnd42sybt14ivcw'; 
+//         const accessToken = 'c4rczh7a6nniomgrnd42sybt14ivcw';
 //         const url = `https://api.twitch.tv/helix/users?login=${streamerName}`;
 //         const headers = {
 //           'Client-ID': apiKey,
 //           'Authorization': `Bearer ${accessToken}`,
 //         };
-      
+
 //         try {
 //           const response = await fetch(url, { headers });
 //           if (!response.ok) {
 //             throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
 //           }
-          
+
 //           const userData = await response.json();
 //           return userData.data[0];
 //         } catch (error) {
@@ -53,7 +53,7 @@ const fetch = require('node-fetch');
 //             offlineImage: twitchData.offline_image_url,
 //             createdAt: twitchData.created_at,
 //           });
-    
+
 //           return newStreamer.save();
 //         }
 //       });
@@ -71,43 +71,55 @@ const fetch = require('node-fetch');
 
 router.get('/', async function(req, res) {
     try {
-        const streamers = await Streamer.find(); // Récupérez les streamers depuis votre base de données.
-
+        const streamers = await Streamer.find().select('twitchId name broadcasterType description profileImage offlineImage createdAt');
+        
         const twitchClientId = 'yezyu92gzd8s4bpqxyrl1r893te09j'; // Remplacez par votre client ID Twitch
         const twitchBearerToken = 'c4rczh7a6nniomgrnd42sybt14ivcw'; // Remplacez par votre jeton d'accès Twitch
+    
 
-        const streamersWithSchedule = [];
+        const fetchPromises = streamers.map(async (streamer) => {
+            try {
+                const response = await fetch(`https://api.twitch.tv/helix/schedule?broadcaster_id=${streamer.twitchId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Client-ID': twitchClientId,
+                        'Authorization': `Bearer ${twitchBearerToken}`,
+                    },
+                });
 
-        for (const streamer of streamers) {
-            const response = await fetch(`https://api.twitch.tv/helix/schedule?broadcaster_id=${streamer.twitchId}`, {
-                method: 'GET',
-                headers: {
-                    'Client-ID': twitchClientId,
-                    'Authorization': `Bearer ${twitchBearerToken}`,
-                },
-            });
-
-            if (response.status === 200) {
-                const schedule = await response.json();
-                // Vérifiez si le planning est présent et ajoutez-le à la liste des streamers avec un planning.
-
-                
-                if (schedule.data.segments) {
-                    streamer.schedule = schedule.data.segments;
+                if (response.status === 200) {
+                    const schedule = await response.json();
+                    // Vérifiez si le planning est présent et ajoutez-le à l'objet streamer.
+                    if (schedule.data && schedule.data.segments) {
+                        // Créez un nouvel objet streamer avec la propriété schedule mise à jour.
+                        return {
+                            ...streamer.toObject(),
+                            schedule: schedule.data.segments
+                        };
+                    }
+                } else {
+                    console.error(`Erreur lors de la récupération du planning pour ${streamer.name}: ${response.statusText}`);
                 }
-                
+            } catch (error) {
+                console.error(`Erreur lors de la récupération du planning pour ${streamer.name}:`, error);
             }
-            console.log("vérifier si schedule", streamer)
-            streamersWithSchedule.push(streamer);
-        }
 
-        res.json(streamersWithSchedule);
+            // Si aucune modification n'est apportée, retournez null.
+            return null;
+        });
+
+        const streamersWithSchedule = (await Promise.all(fetchPromises)).filter(streamer => streamer !== null);
+
+        if (streamersWithSchedule.length > 0) {
+            res.json(streamersWithSchedule);
+        } else {
+            // Aucun streamer avec planning trouvé, renvoyez un message d'erreur approprié.
+            res.status(404).json({ error: 'Aucun streamer avec planning trouvé.' });
+        }
     } catch (error) {
         console.error('Erreur lors de la récupération des streamers et des plannings :', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des données.' });
     }
 });
-
-
 
 module.exports = router;
