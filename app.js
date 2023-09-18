@@ -7,6 +7,7 @@ var logger = require("morgan");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var streamersRouter = require("./routes/streamers");
+var esportRouter = require("./routes/esport");
 
 var app = express();
 
@@ -22,5 +23,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/streamers", streamersRouter);
+app.use("/esport", esportRouter);
 
 module.exports = app;
