@@ -8,6 +8,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var streamersRouter = require("./routes/streamers");
 var esportRouter = require("./routes/esport");
+var topliveRouter = require("./routes/toplive");
 
 var app = express();
 
@@ -24,5 +25,7 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/streamers", streamersRouter);
 app.use("/esport", esportRouter);
+app.use("/toplive", topliveRouter);
+
 
 module.exports = app;
