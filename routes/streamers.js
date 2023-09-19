@@ -3,6 +3,7 @@ var router = express.Router();
 const Streamer = require("../models/streamers");
 const fetch = require("node-fetch");
 
+
 // enregistrer les 100 streamers en BDD dé-commenter si besoin.
 
 // router.post("/", function (req, res) {
@@ -19,8 +20,8 @@ const fetch = require("node-fetch");
 //       ];
 
 //     async function fetchTwitchData(streamerName) {
-//         const apiKey = 'yezyu92gzd8s4bpqxyrl1r893te09j';
-//         const accessToken = 'c4rczh7a6nniomgrnd42sybt14ivcw';
+//       const apiKey = process.env.TWITCH_CLIENT_ID;
+//       const accessToken = process.env.TWITCH_BEARER_TOKEN;
 //         const url = `https://api.twitch.tv/helix/users?login=${streamerName}`;
 //         const headers = {
 //           'Client-ID': apiKey,
@@ -69,14 +70,14 @@ const fetch = require("node-fetch");
 //     });
 
 router.get("/", async function (req, res) {
+  const twitchClientId = process.env.TWITCH_CLIENT_ID;
+  const twitchBearerToken = process.env.TWITCH_BEARER_TOKEN;
   try {
     const streamers = await Streamer.find().select(
       "twitchId name broadcasterType description profileImage offlineImage createdAt"
     );
 
-    const twitchClientId = "yezyu92gzd8s4bpqxyrl1r893te09j"; // Remplacez par votre client ID Twitch
-    const twitchBearerToken = "c4rczh7a6nniomgrnd42sybt14ivcw"; // Remplacez par votre jeton d'accès Twitch
-
+    
     const fetchPromises = streamers.map(async (streamer) => {
       try {
         const response = await fetch(
@@ -85,7 +86,7 @@ router.get("/", async function (req, res) {
             method: "GET",
             headers: {
               "Client-ID": twitchClientId,
-              Authorization: `Bearer ${twitchBearerToken}`,
+              "Authorization": `Bearer ${twitchBearerToken}`,
             },
           }
         );
@@ -151,8 +152,8 @@ router.post("/", function (req, res) {
     } else {
       //formattage du nom en toLowerCase
       const cleanName = streamer.name.toLowerCase();
-      const apiKey = "yezyu92gzd8s4bpqxyrl1r893te09j";
-      const accessToken = "c4rczh7a6nniomgrnd42sybt14ivcw";
+      const apiKey = process.env.TWITCH_CLIENT_ID;
+      const accessToken = process.env.TWITCH_BEARER_TOKEN;
       const url = `https://api.twitch.tv/helix/users?login=${cleanName}`;
       const headers = {
         "Client-ID": apiKey,

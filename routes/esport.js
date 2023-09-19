@@ -17,11 +17,13 @@ const rlcsMatch ="https://api.pandascore.co/leagues/4834/matches?filter[finished
 
 router.get('/', function(req, res) {
         
+  const pandascoreBearerToken = process.env.PANDA_BEARER_TOKEN
+
     const options = {
         method: 'GET',
         headers: {
           accept: 'application/json',
-          authorization: 'Bearer hjom_u2OrwdeELwfrpBEf9JGB2Q1YmnbEvSwch1_oR3C2lrU1n4'
+          authorization: `Bearer ${pandascoreBearerToken}` 
         }
       };
       
