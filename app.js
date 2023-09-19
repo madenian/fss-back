@@ -1,3 +1,4 @@
+require('dotenv').config();
 var express = require("express");
 require("./models/connection");
 var path = require("path");
