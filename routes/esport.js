@@ -3,35 +3,39 @@ var router = express.Router();
 const fetch = require("node-fetch");
 
 
-// URL GET MATCH
-
-// LOL 
-
-const lflMatch ="https://api.pandascore.co/leagues/4292/matches?filter[finished]=false&sort&page=1&per_page=50"
-const lecMatch ="https://api.pandascore.co/leagues/4292/matches?filter[finished]=false&sort&page=1&per_page=50"
-
-// ROCKETLEAGUE
-
-const rlcsMatch ="https://api.pandascore.co/leagues/4834/matches?filter[finished]=false&sort&page=1&per_page=50"
-
-
-router.get('/', function(req, res) {
-        
-  const pandascoreBearerToken = process.env.PANDA_BEARER_TOKEN
+// Route générique pour récupérer des données de jeux
+router.get('/:gameName', async function(req, res) {
+  try {
+    const gameName = req.params.gameName;
+    const pandascoreBearerToken = process.env.PANDA_BEARER_TOKEN;
 
     const options = {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          authorization: `Bearer ${pandascoreBearerToken}` 
-        }
-      };
-      
-      fetch("https://api.pandascore.co/leagues/4292/matches?filter[finished]=false&sort&page=1&per_page=50", options)
-        .then(response => response.json())
-        .then(response => console.log(response))
-        .catch(err => console.error(err));
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${pandascoreBearerToken}`
+      }
+    };
 
-    })
+    const apiUrl = `https://api.pandascore.co/matches/upcoming?filter[videogame]=${gameName}&filter[finished]=false&sort=begin_at&page=1&per_page=100`;
+    
+    const response = await fetch(apiUrl, options);
+    const data = await response.json();
+
+    // Filtrer les objets avec streams_list non vide
+     const filteredData = data.filter(item => item.streams_list.length > 0 && (item.streams_list.some(stream => stream.language === "fr") || item.streams_list.some(stream => stream.language === "en")));
+
+
+    // Envoyez la réponse au front-end
+    res.json(filteredData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Une erreur s'est produite" });
+  }
+});
+
+module.exports = router;
+
+
 
 module.exports = router;
