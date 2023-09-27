@@ -2,8 +2,12 @@ var express = require("express");
 var router = express.Router();
 const Streamer = require("../models/streamers");
 const fetch = require("node-fetch");
+const { twitterClient } = require("./twitterClient.js")
+const CronJob = require("cron").CronJob;
+const moment = require("moment");
 
-
+const twitchClientId = process.env.TWITCH_CLIENT_ID;
+  const twitchBearerToken = process.env.TWITCH_BEARER_TOKEN;
 
 router.get("/", async function (req, res) {
   const twitchClientId = process.env.TWITCH_CLIENT_ID;
@@ -14,8 +18,6 @@ router.get("/", async function (req, res) {
     );
 
    
-
-    
     const fetchPromises = streamers.map(async (streamer) => {
       try {
         const response = await fetch(
@@ -123,6 +125,91 @@ router.post("/", function (req, res) {
         });
     }
   });
+})
+
+
+// BOT TWITTER 
+
+const tweet = async () => {
+
+  function truncateMessage(message, maxLength) {
+    if (message.length <= maxLength) {
+      return message;
+    }
+    return message.slice(0, maxLength - 3) + "...";
+  }
+  try {
+    const currentDate = moment(); 
+  
+
+    const streamers = await Streamer.find().select(
+      "twitchId name broadcasterType description profileImage offlineImage createdAt"
+    );
+
+    const tweetMessage = [];
+
+    for (const streamer of streamers) {
+      try {
+        const response = await fetch(
+          `https://api.twitch.tv/helix/schedule?broadcaster_id=${streamer.twitchId}`,
+          {
+            method: "GET",
+            headers: {
+              "Client-ID": twitchClientId,
+              "Authorization": `Bearer ${twitchBearerToken}`,
+            },
+          }
+        );
+    
+        if (response.status === 200) {
+          const schedule = await response.json();
+          
+          if (schedule.data && schedule.data.segments) {
+            const streamSegments = schedule.data.segments;
+           
+    
+            const streamPrimeTime = streamSegments.some((segment) => {
+              const startTime = moment(segment.start_time);
+              return (
+                startTime.get("hour") >= 19 &&
+                startTime.get("hour") <= 22 &&
+                startTime.isSame(currentDate, "day")
+              );
+            });
+    
+            if (streamPrimeTime) {
+              tweetMessage.push(streamer.name);
+            }
+            console.log(tweetMessage)
+          }
+        }
+      } catch (error) {
+        console.error(`Erreur lors de la récupération du planning pour ${streamer.name}:`, error);
+      }
+    }
+    
+
+    if (tweetMessage.length > 0) {
+      const truncatedMessage = truncateMessage(
+        `📆L'ensemble du programme sur programme-tw.fr. 📺Les streams prévus pour ce soir :\n${tweetMessage.join("\n")}`,
+        280
+      );
+
+      console.log(truncatedMessage)
+     
+      await twitterClient.v2.tweet(truncatedMessage);
+    } else {
+      console.log("Aucun streamer trouvé avec un stream prévu à 21h aujourd'hui.");
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const cronTweet = new CronJob("0 13 * * *", async () => {
+  tweet();
 });
+
+cronTweet.start();
 
 module.exports = router;
