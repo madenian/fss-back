@@ -44,84 +44,84 @@ router.get("/:gameName", async function (req, res) {
   }
 });
 
-// BOT TWITTER
-const tweet = async () => {
-  function truncateMessage(message, maxLength) {
-    if (message.length <= maxLength) {
-      return message;
-    }
-    return message.slice(0, maxLength - 3) + "...";
-  }
-  try {
-    const currentDate = moment();
+// // BOT TWITTER
+// const tweet = async () => {
+//   function truncateMessage(message, maxLength) {
+//     if (message.length <= maxLength) {
+//       return message;
+//     }
+//     return message.slice(0, maxLength - 3) + "...";
+//   }
+//   try {
+//     const currentDate = moment();
 
-    const tweetMessage = [];
+//     const tweetMessage = [];
 
-    const games = [
-      "cs-go",
-      "league-of-legends",
-      "rl",
-      "valorant",
-      "dota-2",
-      "starcraft-2",
-      "fifa",
-      "cod-mw",
-      "r6-siege",
-      "ow",
-    ];
+//     const games = [
+//       "cs-go",
+//       "league-of-legends",
+//       "rl",
+//       "valorant",
+//       "dota-2",
+//       "starcraft-2",
+//       "fifa",
+//       "cod-mw",
+//       "r6-siege",
+//       "ow",
+//     ];
 
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        authorization: `Bearer ${pandascoreBearerToken}`,
-      },
-    };
+//     const options = {
+//       method: "GET",
+//       headers: {
+//         accept: "application/json",
+//         authorization: `Bearer ${pandascoreBearerToken}`,
+//       },
+//     };
 
-    for (const gameName of games) {
-      const apiUrl = `https://api.pandascore.co/matches/upcoming?filter[videogame]=${gameName}&filter[finished]=false&sort=begin_at&page=1&per_page=100`;
+//     for (const gameName of games) {
+//       const apiUrl = `https://api.pandascore.co/matches/upcoming?filter[videogame]=${gameName}&filter[finished]=false&sort=begin_at&page=1&per_page=100`;
 
-      const response = await fetch(apiUrl, options);
-      const data = await response.json();
+//       const response = await fetch(apiUrl, options);
+//       const data = await response.json();
 
-      const filteredData = data.filter(
-        (item) =>
-          item.streams_list.length > 0 &&
-          item.streams_list.some((stream) => stream.language === "fr") &&
-          moment(item.begin_at).isSame(currentDate, "day")
-      );
+//       const filteredData = data.filter(
+//         (item) =>
+//           item.streams_list.length > 0 &&
+//           item.streams_list.some((stream) => stream.language === "fr") &&
+//           moment(item.begin_at).isSame(currentDate, "day")
+//       );
 
-      // Ajouter le nom du jeu et le nom du match au tableau tweetMessage
-      filteredData.forEach((match) => {
-        tweetMessage.push(`${match.videogame.name}, ${match.name}`);
-      });
-    }
+//       // Ajouter le nom du jeu et le nom du match au tableau tweetMessage
+//       filteredData.forEach((match) => {
+//         tweetMessage.push(`${match.videogame.name}, ${match.name}`);
+//       });
+//     }
 
    
 
-    if (tweetMessage.length > 0) {
-      const truncatedMessage = truncateMessage(
-        `📆L'ensemble du programme Esport sur programme-tw.fr/Esport. L'Esport FR aujourd'hui :\n${tweetMessage.join("\n")}`,
-        265
-      );
+//     if (tweetMessage.length > 0) {
+//       const truncatedMessage = truncateMessage(
+//         `📆L'ensemble du programme Esport sur programme-tw.fr/Esport. L'Esport FR aujourd'hui :\n${tweetMessage.join("\n")}`,
+//         265
+//       );
 
-      console.log(truncatedMessage)
+//       console.log(truncatedMessage)
 
       
-      await twitterClient.v2.tweet(truncatedMessage);
-    } else {
-      console.log("Aucun streamer trouvé avec un stream prévu à 21h aujourd'hui.");
-    }
-  } catch (e) {
-    console.error(e);
-  }
-};
+//       await twitterClient.v2.tweet(truncatedMessage);
+//     } else {
+//       console.log("Aucun streamer trouvé avec un stream prévu à 21h aujourd'hui.");
+//     }
+//   } catch (e) {
+//     console.error(e);
+//   }
+// };
 
-const cronTweet = new CronJob("0 14 * * *", async () => {
-  tweet();
-});
+// const cronTweet = new CronJob("0 14 * * *", async () => {
+//   tweet();
+// });
 
-cronTweet.start();
+// cronTweet.start();
 
 
 module.exports = router;

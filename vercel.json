@@ -7,5 +7,14 @@
     "routes": [{
       "src": "/(.*)",
       "dest": "app.js"
-    }]
-   }
+    }],
+   
+   
+    "crons": [
+      {
+        "path": "/api/twitter", 
+        "schedule": "35 12 * * *"  
+      }
+    ]
+  }
+  
