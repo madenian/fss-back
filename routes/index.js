@@ -8,7 +8,6 @@ router.get("/", function (req, res, next) {
   res.render("index", { title: "Express" });
 });
 
-
 const randomTweets = [
   "⏰ Tu mets le réveil demain ? ⏰ Retrouve tous les streams prévus demain matin sur : programme-tw.fr.",
   "⚡️ Supporter de la @KarmineCorp, de @JoblifeEsport de @MandatoryGG ou de @gentlemates ? Retrouve la programmation des matchs de ton équipe Valorant favorite sur programme-tw.fr/Esport ⚡️",
