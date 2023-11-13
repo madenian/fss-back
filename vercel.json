@@ -8,10 +8,13 @@
       "src": "/(.*)",
       "dest": "app.js"
     }],
-    "crons": [{
-      "path": "/api/cron",
-      "schedule": "0 10 * * *"
-    }
-    
-  ]
-   }
+   
+   
+    "crons": [
+      {
+        "path": "/api/twitter", 
+        "schedule": "45 12 * * *"  
+      }
+    ]
+  }
+  
