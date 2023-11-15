@@ -4,8 +4,6 @@ const Streamer = require("../models/streamers");
 const fetch = require("node-fetch");
 const moment = require("moment");
 
-const twitchClientId = process.env.TWITCH_CLIENT_ID;
-  const twitchBearerToken = process.env.TWITCH_BEARER_TOKEN;
 
 router.get("/", async function (req, res) {
   const twitchClientId = process.env.TWITCH_CLIENT_ID;
@@ -14,6 +12,8 @@ router.get("/", async function (req, res) {
     const streamers = await Streamer.find().select(
       "twitchId name broadcasterType description profileImage offlineImage createdAt"
     );
+
+    console.log(streamers)
 
    
     const fetchPromises = streamers.map(async (streamer) => {

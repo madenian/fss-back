@@ -5,7 +5,7 @@ const moment = require("moment");
 const { twitterClient } = require("./twitterClient.js");
 const CronJob = require("cron").CronJob;
 
-const pandascoreBearerToken = process.env.PANDA_BEARER_TOKEN;
+
 
 // Route générique pour récupérer des données de jeux
 router.get("/:gameName", async function (req, res) {
@@ -17,7 +17,7 @@ router.get("/:gameName", async function (req, res) {
       method: "GET",
       headers: {
         accept: "application/json",
-        authorization: `Bearer ${pandascoreBearerToken}`,
+        authorization:`Bearer ${pandascoreBearerToken}`,
       },
     };
 
@@ -25,6 +25,7 @@ router.get("/:gameName", async function (req, res) {
 
     const response = await fetch(apiUrl, options);
     const data = await response.json();
+    console.log(data)
 
     // Filtrer les objets avec streams_list non vide
     const filteredData = data.filter(
